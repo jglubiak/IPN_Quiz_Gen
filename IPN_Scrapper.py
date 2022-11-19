@@ -5,7 +5,7 @@ import os
 import openai
 import re
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 
 class IPN_scrapper():
@@ -60,12 +60,16 @@ class QuizGenerator:
         )
         questions = response['choices'][0]['text'].split("\n")
         questions = list(filter(None, questions))
-        return [self._clean_text(question) for question in questions]
+        clean_questions = [self._clean_text(question) for question in questions]
+        return list(filter(None, clean_questions))
 
     def _clean_text(self, text):
         regex = '\.(.*)'
         r = re.compile(regex)
-        result = r.findall(text)
+        if "." in text[:10]:
+            result = r.findall(text)
+        else:
+            result = text
         return re.sub(r"^\s+", "", result[0])
 
     def _generate_answers(self, n, question):
@@ -97,12 +101,11 @@ def get_question_list(fraza):
     return quiz
 
 
-# scrapper = IPN_scrapper("Powstanie warszawskie")
-# full_result = ' '.join(scrapper.scrap_pages())
-# sentences = full_result.split(".")
-# example_result = ' '.join(sentences[:10])
-# qg = QuizGenerator(example_result)
-# quiz = qg.create_quiz(3, 4)
-# print(quiz)
+scrapper = IPN_scrapper("Powstanie")
+full_result = ' '.join(scrapper.scrap_pages())
+sentences = full_result.split(".")
+example_result = ' '.join(sentences[:10])
 
-print(get_question_list("Powstanie_warszawskie"))
+qg = QuizGenerator(example_result)
+quiz = qg.create_quiz(3, 4)
+print(quiz)
