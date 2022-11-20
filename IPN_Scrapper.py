@@ -5,7 +5,7 @@ import openai
 import re
 import json
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 
 class IPN_scrapper():
@@ -105,9 +105,12 @@ def check_when(fraza):
         frequency_penalty=0,
         presence_penalty=0,
         stop=["\n"]
-    )   
-    data = [int(s) for s in response['choices'][0]['text'].split() if s.isdigit()]
-    return data[0]
+    )
+    try:   
+        data = [int(s) for s in response['choices'][0]['text'].split() if s.isdigit()]
+        return data[0]
+    except:
+        return 0
     
     
 def create_quiz(fraza):
