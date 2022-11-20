@@ -1,7 +1,7 @@
 from flask import Flask
 
 import IPN_Scrapper
-from IPN_Scrapper import get_question_list
+from IPN_Scrapper import create_quiz
 
 app = Flask(__name__)
 
@@ -17,10 +17,12 @@ def hello_world2():
 
 @app.route("/api/<string:fraza>")
 def get_questions(fraza):
-    pytania = IPN_Scrapper.get_question_list(fraza)
-    print(pytania)
-    return pytania
+    quiz = create_quiz(fraza)
+    return quiz
+    # pytania = IPN_Scrapper.get_question_list(fraza)
+    # print(pytania)
+    # return pytania
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=8088)

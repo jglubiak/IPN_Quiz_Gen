@@ -1,11 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
 from goose3 import Goose
-import os
 import openai
 import re
+import json
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 
 class IPN_scrapper():
@@ -61,8 +61,10 @@ class QuizGenerator:
         questions = response['choices'][0]['text'].split("\n")
         questions = list(filter(None, questions))
         clean_questions = [self._clean_text(question) for question in questions]
-        return list(filter(None, clean_questions))
-
+        clean_questions = list(filter(None, clean_questions))
+        return clean_questions
+        # return [question.decode('ascii', 'ignore').encode('ascii') for question in clean_questions]
+        
     def _clean_text(self, text):
         regex = '\.(.*)'
         r = re.compile(regex)
@@ -90,22 +92,46 @@ class QuizGenerator:
 def clear_phraze(fraza):
     return fraza.replace("_", " ")
 
+def check_when(fraza):
+    start_sequence = "\nA:"
+    restart_sequence = "\n\nQ: "
 
-def get_question_list(fraza):
-    scrapper = IPN_scrapper(clear_phraze(fraza))
-    full_result = ' '.join(scrapper.scrap_pages())
-    sentences = full_result.split(".")
-    example_result = ' '.join(sentences[:10])
-    qg = QuizGenerator(example_result)
-    quiz = qg.create_quiz(10, 3)
-    return quiz
+    response = openai.Completion.create(
+        model="text-davinci-002",
+        prompt="{} rok".format(fraza),
+        temperature=0,
+        max_tokens=1000,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0,
+        stop=["\n"]
+    )   
+    data = [int(s) for s in response['choices'][0]['text'].split() if s.isdigit()]
+    return data[0]
+    
+    
+def create_quiz(fraza):
+    data = check_when(fraza)
+    if data > 1917:
+        scrapper = IPN_scrapper(clear_phraze(fraza))
+        full_result = ' '.join(scrapper.scrap_pages())
+        sentences = full_result.split(".")
+        example_result = ' '.join(sentences[:10])
+        qg = QuizGenerator(example_result)
+        quiz = qg.create_quiz(10, 3)
+        json_object = json.dumps(quiz, indent = 4, ensure_ascii=False) 
+        print(json_object)
+        return json_object
+    else:
+        return json.dumps({}, indent = 4, ensure_ascii=False) 
 
 
-scrapper = IPN_scrapper("Powstanie")
-full_result = ' '.join(scrapper.scrap_pages())
-sentences = full_result.split(".")
-example_result = ' '.join(sentences[:10])
 
-qg = QuizGenerator(example_result)
-quiz = qg.create_quiz(3, 4)
-print(quiz)
+# scrapper = IPN_scrapper("Powstanie")
+# full_result = ' '.join(scrapper.scrap_pages())
+# sentences = full_result.split(".")
+# example_result = ' '.join(sentences[:10])
+
+# qg = QuizGenerator(example_result)
+# quiz = qg.create_quiz(3, 4)
+# print(quiz)
